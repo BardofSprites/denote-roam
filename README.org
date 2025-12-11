@@ -1,0 +1,16 @@
+#+TITLE: ~denote-roam~
+
+A GNU Emacs package to bridge [[https://protesilaos.com/emacs/denote][denote]] and [[https://www.orgroam.com/][org-roam]] for format consistent and atomic note taking.
+
+* Philosophy
+
+* Installation
+
+* Usage
+Main functions, etc
+
+* Configuration
+
+* References
+
+* 
