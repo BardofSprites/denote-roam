@@ -39,6 +39,7 @@
 ;;; Code:
 (require 'denote)
 (require 'org-roam)
+(require 'dired)
 
 (defgroup denote-roam ()
   "Creating, linking, and managing files with denote and org-roam."
@@ -221,6 +222,69 @@ If the region is active replace the description with its text."
       ;; node missing then create via Denote
       (let ((keyword (denote-keywords-prompt)))
         (denote title keyword)))))
+
+(defun denote-roam--node-files ()
+  "Return a list of Denote files that are indexed by Org-roam."
+  (denote-roam--require-org-file-type)
+  (let ((denote-dir (file-truename (denote-directory))))
+    (seq-filter
+     (lambda (file)
+       (string-prefix-p denote-dir (file-truename file)))
+     (mapcar #'org-roam-node-file (org-roam-node-list)))))
+
+(defun denote-roam--find-files-unlinked (dir recursive)
+  "Return list of files in DIR whose first non-empty line is not :PROPERTIES:.
+If RECURSIVE is non-nil, search subdirectories as well."
+  (let* ((files
+          (if recursive
+              (directory-files-recursively dir ".*" nil nil t)
+            (directory-files dir t directory-files-no-dot-files-regexp)))
+         bad-files)
+    (dolist (file files)
+      (when (denote-file-is-note-p file)
+        (with-temp-buffer
+          (insert-file-contents file nil 0 500)
+          (goto-char (point-min))
+          (unless (looking-at-p "^:PROPERTIES:$")
+            (push file bad-files)))))
+    (nreverse bad-files)))
+
+;;;###autoload
+(defun denote-roam-dired-unlinked ()
+  "Present a list of files that aren't linked with org-roam in a Dired buffer."
+  (interactive)
+  (let* ((recursive (y-or-n-p "Recursive searching? "))
+         (directory (file-truename denote-roam-directory))
+         (files (denote-roam--find-files-unlinked directory recursive))
+         ;; relative files short name in dired
+         (relative-files (mapcar
+                          (lambda (f)
+                            (file-relative-name f directory))
+                          files))
+         (buffer-name "*Denote Roam Unlinked*"))
+    (if relative-files
+        (dired (cons directory relative-files))
+      (message "No unlinked Denote files found."))))
+
+;;;###autoload
+(defun denote-roam-dired ()
+  "Show notes contained linked in org-roam in a Dired buffer."
+  (interactive)
+  (let* ((recursive (y-or-n-p "Recursive searching? "))
+         (files (denote-roam--node-files))
+         (directory (file-truename denote-roam-directory))
+         (buffer-name "*Denote Roam Linked*")
+         ;; relative files short name in dired
+         (relative-files (mapcar
+                          (lambda (f)
+                            (file-relative-name f directory))
+                          files)))
+    (if relative-files
+        (dired (cons directory relative-files))
+      (message "No linked Denote files found."))))
+
+(defalias 'denote-roam-linked-dired 'denote-roam-dired
+  "Alias for `denote-roam-dired' command.")
 
 (provide 'denote-roam)
 
