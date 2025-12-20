@@ -120,6 +120,25 @@ the buffer."
                                   (expand-file-name file)))
       (denote-roam-insert-id))))
 
+(defun denote-roam--region-text ()
+  "Return region text if active, otherwise nil.
+Does NOT delete the region."
+  (when (use-region-p)
+    (buffer-substring-no-properties
+     (region-beginning)
+     (region-end))))
+
+(defun denote-roam--construct-link (id description)
+  "Create an org link for insertion using ID and DESCRIPTION parameters.
+If the region is active replace the description with its text."
+  (let ((link (org-link-make-string (concat "id:" id) description)))
+    (if (use-region-p)
+        (replace-region-contents
+         (region-beginning)
+         (region-end)
+         (lambda () link))
+      (insert link))))
+
 (defun denote-roam-insert-node (title)
   "Denote analogy for `org-roam-insert-node', takes TITLE as node title."
   (let* ((keywords (denote-keywords-prompt))
@@ -149,27 +168,26 @@ the buffer."
   (interactive)
   ;; Prompt for an existing node, but do not auto-create
   (let* ((node (org-roam-node-read))
-         (title (org-roam-node-title node)))
+         (title (org-roam-node-title node))
+         (region-text (denote-roam--region-text))
+         (description (or region-text title)))
     (if node
         ;; Node exists: insert Org-roam link at point
-        (let ((id (org-roam-node-id node)))
-          (if id
-              (insert (org-link-make-string
-                           (concat "id:" id)
-                           title))
-            ;; Node does not exist (no id): create via Denote
-            (denote-roam-insert-node title))))))
+        (if-let ((id (org-roam-node-id node)))
+            (denote-roam--construct-link id description)
+          ;; Node does not exist (no id): create via Denote
+          (denote-roam-insert-node title)))))
 
 ;;;###autoload
 (defun denote-roam-find-or-create-node ()
   "Find an Org-roam node by title; if missing, create via Denote."
   (interactive)
-  (let* ((node (org-roam-node-read nil nil))  ;; no auto-create; just selection
+  (let* ((node (org-roam-node-read nil nil)) ;; no auto-create; just selection
          (title (org-roam-node-title node)))
     (if (org-roam-node-id node)
-        ;; Node exists → visit
+        ;; node exists then visit
         (org-roam-node-visit node)
-      ;; Node missing → create via Denote
+      ;; node missing then create via Denote
       (let ((keyword (denote-keywords-prompt)))
         (denote title keyword)))))
 
