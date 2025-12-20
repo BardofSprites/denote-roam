@@ -3,14 +3,48 @@
 A GNU Emacs package to bridge [[https://protesilaos.com/emacs/denote][denote]] and [[https://www.orgroam.com/][org-roam]] for format consistent and atomic note taking.
 
 * Philosophy
+This is a personal workflow developed through discovery. I found that denote is good at making notes, but org-roam is better at linking them. Using them in tandem allows for the most amount of features. This package facilitates this workflow.
 
-* Installation
+I discovered this workflow during a chem lecture because I was bored, but it's been really helpful for my writing process for school and self study.
+
+* Installation/Configuration
+This is a personal project, so you will need to install it from version control e.g. my GitHub repository.
+
+** ~use-package~ — Recommended route
+#+begin_src emacs-lisp
+  (use-package denote-roam
+    :vc (:url "https://github.com/BardofSprites/denote-roam"
+         :rev newest)
+    :after (denote org-roam)
+    :bind
+    ("C-c n i" . denote-roam-insert-or-create-node)  ; node insert
+    ("C-c n o" . denote-roam-find-or-create-node)    ; node open
+    :custom
+    ;; default is nil to include denote-journal entries in org-roam database
+    (denote-roam-include-journal nil)
+    (denote-roam-directory "~/Notes")
+    :config
+    (denote-roam-mode t))
+#+end_src
+
+** Manual Install
+Install all the dependencies for org-roam and denote. Then clone the repo:
+
+#+begin_src
+  git clone https://github.com/BardofSprites/denote-roam.git
+#+end_src
+
+Finally, add the package to your load path in your init.el or somewhere:
+#+begin_src emacs-lisp
+  (add-to-list 'load-path "/path/to/denote-roam")
+  (add-to-list 'load-path "/path/to/dependencies")
+#+end_src
 
 * Usage
 Main functions, etc
 
-* Configuration
-
 * References
-
-* 
++ [[https://www.youtube.com/watch?v=ZyrPaLL1sJQ][A video]] I made about denote and org roam, will likely remake this soon
+  [[file:img/denote-roam-video.jpg]]
++ https://www.orgroam.com/
++ https://protesilaos.com/emacs/denote
