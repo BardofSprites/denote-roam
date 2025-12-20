@@ -95,20 +95,21 @@ Accepts nil (the default) or the symbol `org'."
   "Insert or replace a top-level :ID: property at the start of the file.
 ID is placed inside a :PROPERTIES: drawer inserted at the beginning of
 the buffer."
-  (denote-roam--with-check
-   (org-with-wide-buffer
-    (goto-char (point-min))
-    ;; If file already starts with a :PROPERTIES: drawer, remove it
-    (when (looking-at ":PROPERTIES:")
-      (let ((end (save-excursion
-                   (re-search-forward ":END:" nil t))))
-        (when end
-          (delete-region (point-min) (min (point-max) (1+ end)))))))
-   ;; Insert fresh ID drawer at the very top
-   (goto-char (point-min))
-   (let ((id (org-id-new)))
-     (insert (format ":PROPERTIES:\n:ID:       %s\n:END:\n" id)))
-   (save-buffer)))
+  (when (derived-mode-p 'org-mode)
+    (denote-roam--with-check
+     (org-with-wide-buffer
+      (goto-char (point-min))
+      ;; If file already starts with a :PROPERTIES: drawer, remove it
+      (when (looking-at ":PROPERTIES:")
+        (let ((end (save-excursion
+                     (re-search-forward ":END:" nil t))))
+          (when end
+            (delete-region (point-min) (min (point-max) (1+ end)))))))
+     ;; Insert fresh ID drawer at the very top
+     (goto-char (point-min))
+     (let ((id (org-id-new)))
+       (insert (format ":PROPERTIES:\n:ID:       %s\n:END:\n" id)))
+     (save-buffer))))
 
 (defun denote-roam-maybe-insert-id ()
   "Insert a top-level :ID: unless this is a denote journal file."
