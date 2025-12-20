@@ -51,29 +51,60 @@ When nil, journal files are not assigned IDs and ignored by Org-roam."
   :group 'denote-roam
   :type 'boolean)
 
-;;;###autoload
-(define-minor-mode denote-roam-mode
-  "Toggle Denote–Org-roam integration."
-  :global t
+(defvar denote-roam--orig-file-type denote-file-type
+  "Original value of `denote-file-type' before enabling `denote-roam-mode'.")
+
+(defvar denote-roam--orig-denote-dir denote-directory
+  "Original value of `denote-directory' before enabling `denote-roam-mode'.")
+
+(defvar denote-roam--orig-org-roam-dir org-roam-directory
+  "Original value of `org-roam-directory' before enabling `denote-roam-mode'.")
+
+(defcustom denote-roam-directory "~/Notes/"
+  "Directory, as a string, for storing notes.
+This is the destination all file-creating commands."
   :group 'denote-roam
-  (if denote-roam-mode
-      (denote-roam--setup)
-    (denote-roam--reset)))
+  :type 'string)
 
 (defun denote-roam--setup ()
   "Setup `denote-roam-mode'."
   ;; remember original file type
   (setq denote-roam--orig-file-type denote-file-type)
   (setq denote-file-type 'org)
+  (when (and (boundp 'org-roam-directory)
+             (boundp 'denote-directory))
+    (denote-roam--sync-directories))
   ;; Add hook to insert ID
-  (add-hook 'denote-after-create-file-hook
+  (add-hook 'denote-after-new-note-hook
             #'denote-roam-maybe-insert-id))
 
 (defun denote-roam--reset ()
   "Reset variables to original values."
   (setq denote-file-type denote-roam--orig-file-type)
-  (remove-hook 'denote-after-create-file-hook
+  (when denote-roam--orig-denote-dir
+    (setq denote-directory denote-roam--orig-denote-dir))
+
+  (when denote-roam--orig-org-roam-dir
+    (setq org-roam-directory denote-roam--orig-org-roam-dir))
+  (remove-hook 'denote-after-new-note-hook
                #'denote-roam-maybe-insert-id))
+
+;;;###autoload
+(define-minor-mode denote-roam-mode
+  "Global minor mode to toggle Denote–Org-roam integration."
+  :global t
+  :group 'denote-roam
+  (if denote-roam-mode
+      (denote-roam--setup)
+    (denote-roam--reset)))
+
+(defun denote-roam--sync-directories ()
+  "Set Denote and Org-roam directories to `denote-roam-directory'."
+  (let ((dir (expand-file-name denote-roam-directory)))
+    (unless (file-directory-p dir)
+      (user-error "`denote-roam-directory' does not exist: %s" dir))
+    (setq denote-directory dir)
+    (setq org-roam-directory dir)))
 
 (defun denote-roam--require-org-file-type ()
   "Signal an error unless Denote is effectively using Org files.
