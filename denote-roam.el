@@ -3,7 +3,7 @@
 ;; Author: Daniel Pinkston
 ;; Maintainer: Daniel Pinkston
 ;; Version: 0.1.0
-;; Package-Requires: ((emacs 28.1) (denote 4.1.3) (org-roam 2.3.1))
+;; Package-Requires: ((emacs "28.1") (denote "4.1.3") (org-roam "2.3.1"))
 ;; Homepage: https://github.com/BardofSprites/denote-roam
 ;; Keywords: denote, org-roam, note taking, notes
 
