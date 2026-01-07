@@ -40,8 +40,9 @@ Finally, add the package to your load path in your init.el or somewhere:
   (add-to-list 'load-path "/path/to/dependencies")
 #+end_src
 
-* Usage
-Main functions, etc
+* Plans
++ implement node+file counting function that returns number of nodes split across n files
++ denote subtree creation (promote headings accordingly)
 
 * References
 + [[https://www.youtube.com/watch?v=ZyrPaLL1sJQ][A video]] I made about denote and org roam, will likely remake this soon
